@@ -9,9 +9,14 @@ return new class extends Migration {
     {
         Schema::create('professors', function (Blueprint $table) {
             $table->id();
-            $table->string('name'); // ou name_fr si tu veux
+
+            $table->foreignId('center_id')->constrained('centers')->cascadeOnDelete();
+
+            $table->string('name');
             $table->boolean('active')->default(true);
             $table->timestamps();
+
+            $table->index(['center_id', 'active']);
         });
     }
 

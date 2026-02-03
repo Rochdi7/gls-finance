@@ -28,6 +28,8 @@ return new class extends Migration {
             $table->timestamps();
 
             $table->unique(['center_id', 'month', 'year'], 'monthly_financials_unique');
+            $table->index(['is_historical', 'locked']);
+            $table->index(['year', 'month']);
         });
     }
 

@@ -9,10 +9,12 @@ return new class extends Migration {
     {
         Schema::create('centers', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('city')->nullable();
+            $table->string('name');            // GLS Marrakech
+            $table->string('city')->nullable(); // Marrakech
             $table->boolean('active')->default(true);
             $table->timestamps();
+
+            $table->index(['active', 'city']);
         });
     }
 
