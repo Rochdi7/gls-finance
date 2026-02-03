@@ -2,8 +2,8 @@
     Table of Contents
 
     Name                 : JOBICK
-    Author               : DexignLab
-    Author Portfolio     : https://themeforest.net/user/dexignlab/portfolio
+    Author               : GLS Team
+    Author Portfolio     : https://themeforest.net/user/GLS Team/portfolio
     
 
 
@@ -54,19 +54,16 @@
 
 */
 
-
 ////////////////////
 // Abstracts
 ////////////////////
 @import "./abstracts/abstracts";
-
 
 //Importing the RTL-specific variables file//
 //@import "bs_rtl.scss";
 
 //bootstrap library scss files
 @import "./../vendor/bootstrap/scss/bootstrap.scss";
-
 
 ////////////////////
 // Global
@@ -75,30 +72,25 @@
 
 @import "./preloader";
 
-
 ////////////////////
 // Components
 ////////////////////
 @import "./layout/layout";
-
 
 ////////////////////
 // Components
 ////////////////////
 @import "./components/components";
 
-
 ////////////////////
 // All pages
 ////////////////////
 @import "./pages/pages";
 
-
 ////////////////////
 // Version Color
 ////////////////////
 @import "./layout/version-dark/main";
-
 
 ////////////////////
 // RTL
