@@ -9,8 +9,8 @@ class Group extends Model
 {
     protected $fillable = [
         'center_id',
-        'level_id',
         'professor_id',
+        'level_code',
         'students_start_count',
         'students_end_count',
         'price_per_student',
@@ -19,14 +19,22 @@ class Group extends Model
         'status',
     ];
 
+    protected $casts = [
+        'center_id' => 'integer',
+        'professor_id' => 'integer',
+        'students_start_count' => 'integer',
+        'students_end_count' => 'integer',
+        'price_per_student' => 'integer',
+        'month' => 'integer',
+        'year' => 'integer',
+    ];
+
+    public const LEVELS = ['A1', 'A2', 'B1', 'B2'];
+    public const STATUSES = ['active', 'finished'];
+
     public function center(): BelongsTo
     {
         return $this->belongsTo(Center::class);
-    }
-
-    public function level(): BelongsTo
-    {
-        return $this->belongsTo(Level::class);
     }
 
     public function professor(): BelongsTo
@@ -34,21 +42,23 @@ class Group extends Model
         return $this->belongsTo(Professor::class);
     }
 
-    // Helpers (optionnel mais utile)
-    public function getRetentionRateAttribute(): float
+    /**
+     * ✅ Revenue de ce groupe pour le mois = students_end_count * price_per_student
+     */
+    public function revenue(): int
     {
-        $start = (int) $this->students_start_count;
-        $end   = (int) $this->students_end_count;
-
-        if ($start <= 0) return 0.0;
-
-        return round(($end / $start) * 100, 2); // %
+        return (int) ($this->students_end_count * $this->price_per_student);
     }
 
-    public function getRevenueAttribute(): int
+    /**
+     * ✅ Retention % = end / start
+     */
+    public function retentionPercent(): float
     {
-        // Tu peux choisir end_count ou start_count selon ta logique business.
-        // Ici on prend end_count (ceux qui ont “payé/continué” fin du mois).
-        return (int) $this->students_end_count * (int) $this->price_per_student;
+        if ((int) $this->students_start_count <= 0) {
+            return 0.0;
+        }
+
+        return round(($this->students_end_count / $this->students_start_count) * 100, 2);
     }
 }

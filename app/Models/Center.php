@@ -17,6 +17,11 @@ class Center extends Model
         'active' => 'boolean',
     ];
 
+    public function professors(): HasMany
+    {
+        return $this->hasMany(Professor::class);
+    }
+
     public function groups(): HasMany
     {
         return $this->hasMany(Group::class);
