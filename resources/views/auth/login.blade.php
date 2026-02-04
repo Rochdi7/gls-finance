@@ -6,11 +6,11 @@
         <div class="card-body">
             <div class="text-center mb-3">
                 <a href="#">
-                    <img class="logo-auth" src="{{ asset('images/logo-full.png') }}" alt="GLS">
+                    <img class="logo-auth" src="{{ asset('assets/images/logo/gls-noir.png') }}" alt="GLS">
                 </a>
             </div>
 
-            <h4 class="text-center mb-4">Admin Login</h4>
+            <h4 class="text-center mb-4">GLS Portail</h4>
 
             {{-- Errors --}}
             @if ($errors->any())
