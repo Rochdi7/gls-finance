@@ -4,12 +4,17 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Group extends Model
 {
     protected $fillable = [
         'center_id',
         'professor_id',
+
+        // ✅ AJOUT
+        'name',
+
         'level_code',
         'students_start_count',
         'students_end_count',
@@ -42,17 +47,16 @@ class Group extends Model
         return $this->belongsTo(Professor::class);
     }
 
-    /**
-     * ✅ Revenue de ce groupe pour le mois = students_end_count * price_per_student
-     */
+    public function monthlyStats(): HasMany
+    {
+        return $this->hasMany(GroupMonthlyStat::class);
+    }
+
     public function revenue(): int
     {
         return (int) ($this->students_end_count * $this->price_per_student);
     }
 
-    /**
-     * ✅ Retention % = end / start
-     */
     public function retentionPercent(): float
     {
         if ((int) $this->students_start_count <= 0) {

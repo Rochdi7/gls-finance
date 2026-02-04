@@ -7,11 +7,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Center extends Model
 {
-    protected $fillable = [
-        'name',
-        'city',
-        'active',
-    ];
+    protected $fillable = ['name', 'city', 'active'];
 
     protected $casts = [
         'active' => 'boolean',
@@ -30,5 +26,9 @@ class Center extends Model
     public function monthlyFinancials(): HasMany
     {
         return $this->hasMany(MonthlyFinancial::class);
+    }
+    public function monthlyCollections()
+    {
+        return $this->hasMany(\App\Models\CenterMonthlyCollection::class);
     }
 }
