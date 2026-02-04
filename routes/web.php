@@ -16,12 +16,15 @@ use App\Http\Controllers\Finance\ProfessorController;
 use App\Http\Controllers\Finance\GroupController;
 use App\Http\Controllers\Finance\MonthlyFinancialController;
 use App\Http\Controllers\Finance\YearlyFinanceController;
+use App\Http\Controllers\Finance\CenterMonthlyCollectionController;
+use App\Http\Controllers\Finance\CenterComparisonController;
 
 /*
 |--------------------------------------------------------------------------
 | Home
 |--------------------------------------------------------------------------
 */
+
 Route::get('/', function () {
     return auth()->check()
         ? redirect()->route('admin.dashboard')
@@ -52,8 +55,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
     /*
     | Dashboard
     */
-    Route::get('/admin', [DashboardController::class, 'index'])
-        ->name('admin.dashboard');
+    Route::get('/admin', [DashboardController::class, 'index'])->name('admin.dashboard');
 
     /*
     |--------------------------------------------------------------------------
@@ -61,19 +63,28 @@ Route::middleware(['auth', 'admin'])->group(function () {
     |--------------------------------------------------------------------------
     | Numeric-only management system (no students, no enrollments)
     */
+    Route::prefix('finance')
+        ->name('finance.')
+        ->group(function () {
 
-    Route::prefix('finance')->name('finance.')->group(function () {
+            Route::resource('centers', CenterController::class);
+            Route::resource('professors', ProfessorController::class);
+            Route::resource('groups', GroupController::class);
+            Route::resource('monthly-financials', MonthlyFinancialController::class);
 
-        // CRUD core tables
-        Route::resource('centers', CenterController::class);
-        Route::resource('professors', ProfessorController::class);
-        Route::resource('groups', GroupController::class);
-        Route::resource('monthly-financials', MonthlyFinancialController::class);
+            Route::get('yearly', [YearlyFinanceController::class, 'index'])->name('yearly');
 
-        // Yearly dashboard (select year → profs + groups details)
-        Route::get('yearly', [YearlyFinanceController::class, 'index'])
-            ->name('yearly');
-    });
+            // ✅ Center Comparison
+            Route::get('center-comparison', [CenterComparisonController::class, 'index'])
+                ->name('center-comparison.index');
+
+            // ✅ NEW show for center payments
+            Route::get('center-monthly-collections/center/{center}', [CenterMonthlyCollectionController::class, 'show'])
+                ->name('center-monthly-collections.show-center');
+
+            Route::resource('center-monthly-collections', CenterMonthlyCollectionController::class)
+                ->except(['show']);
+        });
 });
 
 /*
