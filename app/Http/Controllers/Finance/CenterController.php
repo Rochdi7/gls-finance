@@ -8,14 +8,14 @@ use App\Http\Requests\Finance\Center\CenterUpdateRequest;
 use App\Models\Center;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
+use App\Models\CenterMonthlyCollection;
+use Illuminate\Http\Request;
 
 class CenterController extends Controller
 {
     public function index(): View
     {
-        $centers = Center::query()
-            ->latest()
-            ->paginate(20);
+        $centers = Center::query()->latest()->paginate(20);
 
         return view('finance.centers.index', compact('centers'));
     }
@@ -32,19 +32,19 @@ class CenterController extends Controller
         return redirect()
             ->route('finance.centers.index')
             ->with('toast', [
-                'title'   => 'Création réussie',
+                'title' => 'Création réussie',
                 'message' => "Le centre « {$center->name} » a été créé avec succès.",
-                'dot'     => 'success',
-                'delay'   => 4500,
-                'time'    => now()->format('H:i'),
+                'dot' => 'success',
+                'delay' => 4500,
+                'time' => now()->format('H:i'),
             ]);
     }
 
-    // Optionnel : si tu n'as pas de show.blade.php, tu peux supprimer cette méthode + route.
-    public function show(Center $center): View
-    {
-        return view('finance.centers.show', compact('center'));
-    }
+    public function show(Center $center)
+{
+    return redirect()->route('finance.center-monthly-collections.show-center', $center);
+}
+
 
     public function edit(Center $center): View
     {
@@ -58,11 +58,11 @@ class CenterController extends Controller
         return redirect()
             ->route('finance.centers.index')
             ->with('toast', [
-                'title'   => 'Mise à jour effectuée',
+                'title' => 'Mise à jour effectuée',
                 'message' => "Le centre « {$center->name} » a été mis à jour avec succès.",
-                'dot'     => 'info',
-                'delay'   => 4500,
-                'time'    => now()->format('H:i'),
+                'dot' => 'info',
+                'delay' => 4500,
+                'time' => now()->format('H:i'),
             ]);
     }
 
@@ -74,11 +74,13 @@ class CenterController extends Controller
         return redirect()
             ->route('finance.centers.index')
             ->with('toast', [
-                'title'   => 'Suppression effectuée',
+                'title' => 'Suppression effectuée',
                 'message' => "Le centre « {$name} » a été supprimé avec succès.",
-                'dot'     => 'warning',
-                'delay'   => 4500,
-                'time'    => now()->format('H:i'),
+                'dot' => 'warning',
+                'delay' => 4500,
+                'time' => now()->format('H:i'),
             ]);
     }
+
+    
 }
