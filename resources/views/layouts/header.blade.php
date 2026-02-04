@@ -47,7 +47,8 @@
                             <li class="active dlab-chat-user">
                                 <div class="d-flex bd-highlight">
                                     <div class="img_cont">
-                                        <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img" alt="">
+                                        <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img"
+                                            alt="">
                                         <span class="online_icon"></span>
                                     </div>
                                     <div class="user_info">
@@ -59,7 +60,8 @@
                             <li class="dlab-chat-user">
                                 <div class="d-flex bd-highlight">
                                     <div class="img_cont">
-                                        <img src="{{ asset('images/avatar/2.jpg') }}" class="rounded-circle user_img" alt="">
+                                        <img src="{{ asset('images/avatar/2.jpg') }}" class="rounded-circle user_img"
+                                            alt="">
                                         <span class="online_icon offline"></span>
                                     </div>
                                     <div class="user_info">
@@ -71,7 +73,8 @@
                             <li class="dlab-chat-user">
                                 <div class="d-flex bd-highlight">
                                     <div class="img_cont">
-                                        <img src="{{ asset('images/avatar/3.jpg') }}" class="rounded-circle user_img" alt="">
+                                        <img src="{{ asset('images/avatar/3.jpg') }}" class="rounded-circle user_img"
+                                            alt="">
                                         <span class="online_icon"></span>
                                     </div>
                                     <div class="user_info">
@@ -83,7 +86,8 @@
                             <li class="dlab-chat-user">
                                 <div class="d-flex bd-highlight">
                                     <div class="img_cont">
-                                        <img src="{{ asset('images/avatar/4.jpg') }}" class="rounded-circle user_img" alt="">
+                                        <img src="{{ asset('images/avatar/4.jpg') }}" class="rounded-circle user_img"
+                                            alt="">
                                         <span class="online_icon offline"></span>
                                     </div>
                                     <div class="user_info">
@@ -288,7 +292,8 @@
                     <div class="card-body msg_card_body dlab-scroll" id="DLAB_W_Contacts_Body3">
                         <div class="d-flex justify-content-start mb-4">
                             <div class="img_cont_msg">
-                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg" alt="">
+                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg"
+                                    alt="">
                             </div>
                             <div class="msg_cotainer">
                                 Hi, how are you samim?
@@ -301,12 +306,14 @@
                                 <span class="msg_time_send">8:55 AM, Today</span>
                             </div>
                             <div class="img_cont_msg">
-                                <img src="{{ asset('images/avatar/2.jpg') }}" class="rounded-circle user_img_msg" alt="">
+                                <img src="{{ asset('images/avatar/2.jpg') }}" class="rounded-circle user_img_msg"
+                                    alt="">
                             </div>
                         </div>
                         <div class="d-flex justify-content-start mb-4">
                             <div class="img_cont_msg">
-                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg" alt="">
+                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg"
+                                    alt="">
                             </div>
                             <div class="msg_cotainer">
                                 I am good too, thank you for your chat template
@@ -319,12 +326,14 @@
                                 <span class="msg_time_send">9:05 AM, Today</span>
                             </div>
                             <div class="img_cont_msg">
-                                <img src="{{ asset('images/avatar/2.jpg') }}" class="rounded-circle user_img_msg" alt="">
+                                <img src="{{ asset('images/avatar/2.jpg') }}" class="rounded-circle user_img_msg"
+                                    alt="">
                             </div>
                         </div>
                         <div class="d-flex justify-content-start mb-4">
                             <div class="img_cont_msg">
-                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg" alt="">
+                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg"
+                                    alt="">
                             </div>
                             <div class="msg_cotainer">
                                 I am looking for your next templates
@@ -337,12 +346,14 @@
                                 <span class="msg_time_send">9:10 AM, Today</span>
                             </div>
                             <div class="img_cont_msg">
-                                <img src="{{ asset('images/avatar/2.jpg') }}" class="rounded-circle user_img_msg" alt="">
+                                <img src="{{ asset('images/avatar/2.jpg') }}" class="rounded-circle user_img_msg"
+                                    alt="">
                             </div>
                         </div>
                         <div class="d-flex justify-content-start mb-4">
                             <div class="img_cont_msg">
-                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg" alt="">
+                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg"
+                                    alt="">
                             </div>
                             <div class="msg_cotainer">
                                 Bye, see you
@@ -351,7 +362,8 @@
                         </div>
                         <div class="d-flex justify-content-start mb-4">
                             <div class="img_cont_msg">
-                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg" alt="">
+                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg"
+                                    alt="">
                             </div>
                             <div class="msg_cotainer">
                                 Hi, how are you samim?
@@ -364,12 +376,14 @@
                                 <span class="msg_time_send">8:55 AM, Today</span>
                             </div>
                             <div class="img_cont_msg">
-                                <img src="{{ asset('images/avatar/2.jpg') }}" class="rounded-circle user_img_msg" alt="">
+                                <img src="{{ asset('images/avatar/2.jpg') }}" class="rounded-circle user_img_msg"
+                                    alt="">
                             </div>
                         </div>
                         <div class="d-flex justify-content-start mb-4">
                             <div class="img_cont_msg">
-                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg" alt="">
+                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg"
+                                    alt="">
                             </div>
                             <div class="msg_cotainer">
                                 I am good too, thank you for your chat template
@@ -382,12 +396,14 @@
                                 <span class="msg_time_send">9:05 AM, Today</span>
                             </div>
                             <div class="img_cont_msg">
-                                <img src="{{ asset('images/avatar/2.jpg') }}" class="rounded-circle user_img_msg" alt="">
+                                <img src="{{ asset('images/avatar/2.jpg') }}" class="rounded-circle user_img_msg"
+                                    alt="">
                             </div>
                         </div>
                         <div class="d-flex justify-content-start mb-4">
                             <div class="img_cont_msg">
-                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg" alt="">
+                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg"
+                                    alt="">
                             </div>
                             <div class="msg_cotainer">
                                 I am looking for your next templates
@@ -400,12 +416,14 @@
                                 <span class="msg_time_send">9:10 AM, Today</span>
                             </div>
                             <div class="img_cont_msg">
-                                <img src="{{ asset('images/avatar/2.jpg') }}" class="rounded-circle user_img_msg" alt="">
+                                <img src="{{ asset('images/avatar/2.jpg') }}" class="rounded-circle user_img_msg"
+                                    alt="">
                             </div>
                         </div>
                         <div class="d-flex justify-content-start mb-4">
                             <div class="img_cont_msg">
-                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg" alt="">
+                                <img src="{{ asset('images/avatar/1.jpg') }}" class="rounded-circle user_img_msg"
+                                    alt="">
                             </div>
                             <div class="msg_cotainer">
                                 Bye, see you
@@ -611,9 +629,9 @@
             <div class="collapse navbar-collapse justify-content-between">
                 <div class="header-left">
                     <div class="dashboard_bar">
-                        {{$page_title ? $page_title : ''}}
+                        {{ $page_title ? $page_title : '' }}
                     </div>
-                 
+
                 </div>
                 <ul class="navbar-nav header-right">
 
@@ -624,11 +642,11 @@
 
                         </a>
                     </li>
-                  
+
 
                     <li class="nav-item dropdown header-profile">
                         <a class="nav-link" href="javascript:void(0);" role="button" data-bs-toggle="dropdown">
-                            <img src="{{ asset('images/profile/pic1.jpg') }}" width="20" alt="">
+                            <img src="{{ asset('assets/images/logo/gls-noir.png') }}" width="20" alt="">
                         </a>
                         <div class="dropdown-menu dropdown-menu-end">
                             {{-- <a href="{{ url('app-profile') }}" class="dropdown-item ai-icon">
@@ -641,8 +659,8 @@
                                 </svg>
                                 <span class="ms-2">Profile </span>
                             </a> --}}
-                            
-                            <a href="{{  url('page-register')}}" class="dropdown-item ai-icon">
+
+                            <a href="{{ url('page-register') }}" class="dropdown-item ai-icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="text-danger" width="18"
                                     height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                     stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
