@@ -3,7 +3,9 @@
 namespace Database\Seeders;
 
 use App\Models\Center;
+use App\Models\CenterMonthlyCollection;
 use App\Models\Group;
+use App\Models\GroupMonthlyStat;
 use App\Models\MonthlyFinancial;
 use App\Models\Professor;
 use Illuminate\Database\Seeder;
@@ -16,7 +18,10 @@ class DemoFinanceSeeder extends Seeder
     {
         DB::transaction(function () {
 
-            // Reset total (ok avec migrate:fresh --seed)
+            // ✅ Reset total (ok avec migrate:fresh --seed)
+            // IMPORTANT: delete enfants avant parents
+            GroupMonthlyStat::query()->delete();
+            CenterMonthlyCollection::query()->delete();
             Group::query()->delete();
             MonthlyFinancial::query()->delete();
             Professor::query()->delete();
@@ -40,7 +45,6 @@ class DemoFinanceSeeder extends Seeder
             /**
              * =========================
              * PROFESSORS (par center)
-             * ✅ chaque center a ses professeurs
              * =========================
              */
             $namesPool = collect([
@@ -49,7 +53,6 @@ class DemoFinanceSeeder extends Seeder
                 'Aya', 'Mehdi', 'Karim', 'Samira', 'Laila', 'Anas',
             ]);
 
-            // Map: center_id => Collection<Professor>
             $professorsByCenter = collect();
 
             foreach ($centers as $center) {
@@ -87,92 +90,189 @@ class DemoFinanceSeeder extends Seeder
             ];
 
             /**
-             * =========================
-             * GROUPS + MONTHLY FINANCIALS (2024, 2025)  ✅
-             * - crée des groups (pour que yearly page affiche)
-             * - monthly_financials = historique
-             * =========================
+             * =========================================================
+             * HELPER : build realistic 10-month timeline
+             * =========================================================
+             */
+            $buildTenMonthsStats = function (int $startMonth, int $year, int $startStudents, int $price) {
+                $months = [];
+                $current = $startStudents;
+
+                for ($i = 0; $i < 10; $i++) {
+                    $m = $startMonth + $i;
+                    if ($m > 12) break;
+
+                    $newStudents = rand(0, 3);
+                    $loss = rand(0, min(4, $current + $newStudents));
+
+                    $monthStart = max(0, $current + $newStudents);
+                    $monthEnd   = max(0, $monthStart - $loss);
+
+                    $months[] = [
+                        'month'   => $m,
+                        'year'    => $year,
+                        'start'   => $monthStart,
+                        'end'     => $monthEnd,
+                        'revenue' => (int) ($monthEnd * $price),
+                    ];
+
+                    $current = $monthEnd;
+                }
+
+                return $months;
+            };
+
+            /**
+             * =========================================================
+             * HELPER : split revenue into 4 payment methods
+             * - ensures sum == total (in cents)
+             * =========================================================
+             */
+            $splitRevenue = function (int $total) {
+                // total est un "int" (MAD/EUR) dans ton projet -> on convertit en cents pour être exact
+                $totalCents = max(0, (int) round($total * 100));
+
+                if ($totalCents === 0) {
+                    return [0, 0, 0, 0];
+                }
+
+                // poids réalistes (cash souvent élevé)
+                $wCash   = rand(25, 55);
+                $wTpe    = rand(15, 35);
+                $wBank   = rand(10, 30);
+                $wCheque = rand(0, 20);
+
+                $sumW = $wCash + $wTpe + $wBank + $wCheque;
+
+                $cash   = (int) floor($totalCents * ($wCash / $sumW));
+                $tpe    = (int) floor($totalCents * ($wTpe / $sumW));
+                $bank   = (int) floor($totalCents * ($wBank / $sumW));
+                $cheque = (int) floor($totalCents * ($wCheque / $sumW));
+
+                // Ajuster le reste pour tomber EXACT
+                $allocated = $cash + $tpe + $bank + $cheque;
+                $diff = $totalCents - $allocated;
+
+                // on met le diff sur la méthode la plus "flexible" : cash puis tpe
+                if ($diff !== 0) {
+                    $cash += $diff;
+                }
+
+                // Retour en unité monétaire
+                return [
+                    $cash / 100,
+                    $tpe / 100,
+                    $bank / 100,
+                    $cheque / 100,
+                ];
+            };
+
+            /**
+             * =========================================================
+             * PART 1: HISTORIQUE (2024, 2025)
+             * =========================================================
              */
             foreach ([2024, 2025] as $year) {
+
+                $allMonthlyStats = collect();
+
+                foreach ($centers as $center) {
+
+                    $centerProfessors = $professorsByCenter->get($center->id, collect());
+                    if ($centerProfessors->isEmpty()) {
+                        $centerProfessors = collect([
+                            Professor::create([
+                                'center_id' => $center->id,
+                                'name'      => 'Prof ' . $center->city,
+                                'active'    => true,
+                            ])
+                        ]);
+                        $professorsByCenter->put($center->id, $centerProfessors);
+                    }
+
+                    $cohortsCount = match ($center->city) {
+                        'Casablanca' => rand(6, 10),
+                        'Marrakech'  => rand(6, 10),
+                        'Rabat'      => rand(4, 8),
+                        'Online'     => rand(4, 7),
+                        default      => rand(3, 6),
+                    };
+
+                    $used = [];
+                    $tries = 0;
+
+                    while (count($used) < $cohortsCount && $tries < 250) {
+                        $tries++;
+
+                        $level = Arr::random(Group::LEVELS);
+                        $professorId = $centerProfessors->random()->id;
+                        $startMonth = rand(1, 12);
+
+                        $key = $level . '-' . $professorId . '-' . $startMonth;
+                        if (isset($used[$key])) continue;
+                        $used[$key] = true;
+
+                        $assignProfessor = rand(0, 100) > 8;
+                        $professorIdFinal = $assignProfessor ? $professorId : null;
+
+                        $price = (int) $levelBasePrice[$level] + rand(-30, 60);
+                        $startStudents = rand(10, 22);
+
+                        $mm = str_pad((string) $startMonth, 2, '0', STR_PAD_LEFT);
+                        $name = "{$level} – {$center->name} – {$mm}/{$year}";
+
+                        $status = (rand(0, 100) > 15) ? 'finished' : Arr::random(Group::STATUSES);
+
+                        $timeline = $buildTenMonthsStats($startMonth, $year, $startStudents, $price);
+                        if (empty($timeline)) continue;
+
+                        $first = $timeline[0];
+
+                        $g = Group::create([
+                            'center_id'            => $center->id,
+                            'professor_id'         => $professorIdFinal,
+                            'name'                 => $name,
+                            'level_code'           => $level,
+                            'students_start_count' => (int) $first['start'],
+                            'students_end_count'   => (int) $first['end'],
+                            'price_per_student'    => $price,
+                            'month'                => (int) $first['month'],
+                            'year'                 => $year,
+                            'status'               => $status,
+                        ]);
+
+                        foreach ($timeline as $row) {
+                            GroupMonthlyStat::create([
+                                'group_id' => $g->id,
+                                'month' => (int) $row['month'],
+                                'year'  => (int) $row['year'],
+                                'students_start_count' => (int) $row['start'],
+                                'students_end_count'   => (int) $row['end'],
+                                'revenue' => (int) $row['revenue'],
+                            ]);
+
+                            $allMonthlyStats->push([
+                                'center_id' => $center->id,
+                                'month' => (int) $row['month'],
+                                'year' => (int) $row['year'],
+                                'students_end_count' => (int) $row['end'],
+                                'revenue' => (int) $row['revenue'],
+                            ]);
+                        }
+                    }
+                }
+
+                // ✅ MonthlyFinancial pour chaque center/mois depuis stats
                 for ($month = 1; $month <= 12; $month++) {
                     foreach ($centers as $center) {
 
-                        // combien de groupes sur ce mois (historique)
-                        $groupsCount = match ($center->city) {
-                            'Casablanca' => rand(3, 6),
-                            'Marrakech'  => rand(3, 6),
-                            'Rabat'      => rand(2, 5),
-                            'Online'     => rand(2, 4),
-                            default      => rand(1, 4),
-                        };
+                        $rows = $allMonthlyStats
+                            ->where('center_id', $center->id)
+                            ->where('month', $month)
+                            ->where('year', $year);
 
-                        $centerProfessors = $professorsByCenter->get($center->id, collect());
-
-                        if ($centerProfessors->isEmpty()) {
-                            $centerProfessors = collect([
-                                Professor::create([
-                                    'center_id' => $center->id,
-                                    'name'      => 'Prof ' . $center->city,
-                                    'active'    => true,
-                                ])
-                            ]);
-                            $professorsByCenter->put($center->id, $centerProfessors);
-                        }
-
-                        // contrainte unique: (center_id, level_code, professor_id, month, year)
-                        $usedCombos = [];
-                        $tries = 0;
-
-                        $groupsCreated = collect();
-
-                        while ($groupsCreated->count() < $groupsCount && $tries < 120) {
-                            $tries++;
-
-                            $level = Arr::random(Group::LEVELS);
-                            $professorId = $centerProfessors->random()->id;
-
-                            $comboKey = $level . '-' . $professorId;
-
-                            if (isset($usedCombos[$comboKey])) {
-                                continue;
-                            }
-
-                            $usedCombos[$comboKey] = true;
-
-                            $start = rand(10, 22);
-                            $end   = max(0, $start - rand(0, 6));
-
-                            $price = (int) $levelBasePrice[$level] + rand(-30, 60);
-
-                            $status = Arr::random(Group::STATUSES);
-
-                            // Petit réalisme: historique plutôt "finished"
-                            if (rand(0, 100) > 15) {
-                                $status = 'finished';
-                            }
-
-                            // de temps en temps, groupe non affecté
-                            $assignProfessor = rand(0, 100) > 8; // 92% affecté
-                            $professorIdFinal = $assignProfessor ? $professorId : null;
-
-                            $g = Group::create([
-                                'center_id'            => $center->id,
-                                'professor_id'         => $professorIdFinal,
-                                'level_code'           => $level,
-                                'students_start_count' => $start,
-                                'students_end_count'   => $end,
-                                'price_per_student'    => $price,
-                                'month'                => $month,
-                                'year'                 => $year,
-                                'status'               => $status,
-                            ]);
-
-                            $groupsCreated->push($g);
-                        }
-
-                        // Monthly totals depuis groups (même pour historique)
-                        $totalStudents = (int) $groupsCreated->sum('students_end_count');
-                        $totalRevenue  = (int) $groupsCreated->sum(fn (Group $g) => $g->revenue());
+                        $totalStudents = (int) $rows->sum('students_end_count');
+                        $totalRevenue  = (int) $rows->sum('revenue');
 
                         $mf = MonthlyFinancial::create([
                             'center_id'      => $center->id,
@@ -190,91 +290,102 @@ class DemoFinanceSeeder extends Seeder
             }
 
             /**
-             * =========================
-             * LIVE GROUPS (2026)
-             * ✅ professor doit appartenir au même center
-             * ✅ Respecte UNIQUE (center_id, level_code, professor_id, month, year)
-             * =========================
+             * =========================================================
+             * PART 2: LIVE (2026)
+             * =========================================================
              */
-            $allGroups2026 = collect();
+            $allMonthlyStats2026 = collect();
 
-            for ($month = 1; $month <= 12; $month++) {
-                foreach ($centers as $center) {
+            foreach ($centers as $center) {
 
-                    $groupsCount = match ($center->city) {
-                        'Casablanca' => rand(3, 5),
-                        'Marrakech'  => rand(3, 5),
-                        'Rabat'      => rand(2, 4),
-                        'Online'     => rand(2, 4),
-                        default      => rand(1, 3),
-                    };
+                $centerProfessors = $professorsByCenter->get($center->id, collect());
+                if ($centerProfessors->isEmpty()) {
+                    $centerProfessors = collect([
+                        Professor::create([
+                            'center_id' => $center->id,
+                            'name'      => 'Prof ' . $center->city,
+                            'active'    => true,
+                        ])
+                    ]);
+                    $professorsByCenter->put($center->id, $centerProfessors);
+                }
 
-                    $centerProfessors = $professorsByCenter->get($center->id, collect());
+                $cohortsCount = match ($center->city) {
+                    'Casablanca' => rand(7, 11),
+                    'Marrakech'  => rand(7, 11),
+                    'Rabat'      => rand(5, 9),
+                    'Online'     => rand(5, 8),
+                    default      => rand(3, 7),
+                };
 
-                    if ($centerProfessors->isEmpty()) {
-                        $centerProfessors = collect([
-                            Professor::create([
-                                'center_id' => $center->id,
-                                'name'      => 'Prof ' . $center->city,
-                                'active'    => true,
-                            ])
+                $used = [];
+                $tries = 0;
+
+                while (count($used) < $cohortsCount && $tries < 300) {
+                    $tries++;
+
+                    $level = Arr::random(Group::LEVELS);
+                    $professorId = $centerProfessors->random()->id;
+                    $startMonth = rand(1, 12);
+
+                    $key = $level . '-' . $professorId . '-' . $startMonth;
+                    if (isset($used[$key])) continue;
+                    $used[$key] = true;
+
+                    $price = (int) $levelBasePrice[$level] + rand(-20, 40);
+                    $startStudents = rand(8, 18);
+
+                    $mm = str_pad((string) $startMonth, 2, '0', STR_PAD_LEFT);
+                    $name = "{$level} – {$center->name} – {$mm}/2026";
+
+                    $timeline = $buildTenMonthsStats($startMonth, 2026, $startStudents, $price);
+                    if (empty($timeline)) continue;
+
+                    $first = $timeline[0];
+
+                    $group = Group::create([
+                        'center_id'            => $center->id,
+                        'professor_id'         => $professorId,
+                        'name'                 => $name,
+                        'level_code'           => $level,
+                        'students_start_count' => (int) $first['start'],
+                        'students_end_count'   => (int) $first['end'],
+                        'price_per_student'    => $price,
+                        'month'                => (int) $first['month'],
+                        'year'                 => 2026,
+                        'status'               => Arr::random(Group::STATUSES),
+                    ]);
+
+                    foreach ($timeline as $row) {
+                        GroupMonthlyStat::create([
+                            'group_id' => $group->id,
+                            'month' => (int) $row['month'],
+                            'year'  => 2026,
+                            'students_start_count' => (int) $row['start'],
+                            'students_end_count'   => (int) $row['end'],
+                            'revenue' => (int) $row['revenue'],
                         ]);
-                        $professorsByCenter->put($center->id, $centerProfessors);
-                    }
 
-                    $usedCombos = [];
-                    $tries = 0;
-
-                    while (count($usedCombos) < $groupsCount && $tries < 120) {
-                        $tries++;
-
-                        $level = Arr::random(Group::LEVELS);
-                        $professorId = $centerProfessors->random()->id;
-
-                        $comboKey = $level . '-' . $professorId;
-
-                        if (isset($usedCombos[$comboKey])) {
-                            continue;
-                        }
-
-                        $usedCombos[$comboKey] = true;
-
-                        $start = rand(8, 18);
-                        $end   = max(0, $start - rand(0, 4));
-
-                        $price = (int) $levelBasePrice[$level] + rand(-20, 40);
-
-                        $group = Group::create([
-                            'center_id'            => $center->id,
-                            'professor_id'         => $professorId,
-                            'level_code'           => $level,
-                            'students_start_count' => $start,
-                            'students_end_count'   => $end,
-                            'price_per_student'    => $price,
-                            'month'                => $month,
-                            'year'                 => 2026,
-                            'status'               => Arr::random(Group::STATUSES),
+                        $allMonthlyStats2026->push([
+                            'center_id' => $center->id,
+                            'month' => (int) $row['month'],
+                            'year' => 2026,
+                            'students_end_count' => (int) $row['end'],
+                            'revenue' => (int) $row['revenue'],
                         ]);
-
-                        $allGroups2026->push($group);
                     }
                 }
             }
 
-            /**
-             * =========================
-             * 2026 : MONTHLY_FINANCIALS calculés depuis groups
-             * =========================
-             */
             for ($month = 1; $month <= 12; $month++) {
                 foreach ($centers as $center) {
 
-                    $groups = $allGroups2026
+                    $rows = $allMonthlyStats2026
                         ->where('center_id', $center->id)
                         ->where('month', $month);
 
-                    $totalStudents = (int) $groups->sum('students_end_count');
-                    $totalRevenue  = (int) $groups->sum(fn (Group $g) => $g->revenue());
+                    $totalStudents = (int) $rows->sum('students_end_count');
+                    $totalRevenue  = (int) $rows->sum('revenue');
 
                     $mf = MonthlyFinancial::create([
                         'center_id'      => $center->id,
@@ -289,6 +400,47 @@ class DemoFinanceSeeder extends Seeder
                     $mf->fillSplitFromRevenue()->save();
                 }
             }
+
+            /**
+ * =========================================================
+ * PART 3: Center Monthly Collections (Payments)
+ * - 2024 / 2025 / 2026
+ * =========================================================
+ */
+$allMF = MonthlyFinancial::query()
+    ->orderBy('year')
+    ->orderBy('month')
+    ->get();
+
+foreach ($allMF as $mf) {
+
+    // Sécurité : ignorer mois sans revenu
+    if ((int) $mf->total_revenue <= 0) {
+        continue;
+    }
+
+    [$cash, $tpe, $bank, $cheque] = $splitRevenue((int) $mf->total_revenue);
+
+    CenterMonthlyCollection::updateOrCreate(
+        [
+            'center_id' => (int) $mf->center_id,
+            'year'      => (int) $mf->year,   // 🔥 2024 / 2025 / 2026
+            'month'     => (int) $mf->month,
+        ],
+        [
+            'cash_amount'          => $cash,
+            'tpe_amount'           => $tpe,
+            'bank_transfer_amount' => $bank,
+            'cheque_amount'        => $cheque,
+            'note' => match (true) {
+                $mf->year === 2024 => 'Seed historique 2024',
+                $mf->year === 2025 => 'Seed historique 2025',
+                default            => 'Seed live 2026',
+            },
+        ]
+    );
+}
+
         });
     }
 }
